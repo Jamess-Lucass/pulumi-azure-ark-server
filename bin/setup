@@ -1,0 +1,59 @@
+#!/bin/bash
+set -e
+
+# Paths
+export SERVER_DIR="/home/azure-user/server"
+MAP_NAME=${1:-"TheIsland"}
+
+# Configur operating system firewall
+sudo ufw allow 27015/udp
+sudo ufw allow 7777/udp
+
+sudo apt-get update -y && sudo apt-get upgrade -y
+
+echo "fs.file-max=100000" >> sudo /etc/sysctl.conf && sudo sysctl -p
+echo "* soft nofile 1000000" >> sudo /etc/security/limits.conf
+echo "* hard nofile 1000000" >> sudo /etc/security/limits.conf
+echo "session required pam_limits.so" >> sudo /etc/pam.d/common-session
+
+if [ ! -d "$SERVER_DIR" ]; then
+  mkdir -p $SERVER_DIR
+fi
+
+sudo dpkg --add-architecture i386
+sudo apt-get install lib32gcc1 -y
+sudo apt-get update -y
+sudo apt-get install steamcmd -y
+
+if [ ! -L "/usr/games/steamcmd" ]; then
+  echo "Creating symlink"
+  sudo ln -s /usr/games/steamcmd steamcmd
+fi
+
+sudo /usr/games/steamcmd +force_install_dir $SERVER_DIR +login anonymous +app_update 376030 +quit
+
+sudo tee /lib/systemd/system/ark.service > /dev/null <<EOL
+[Unit]
+Description=ARK Survival Evolved
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+User=azure-user
+Group=azure-user
+ExecStartPre=/home/azure-user/steamcmd +force_install_dir $SERVER_DIR +login anonymous +app_update 376030 +quit
+ExecStart=$SERVER_DIR/ShooterGame/Binaries/Linux/ShooterGameServer $MAP_NAME?listen -server -log -automanagedmods
+ExecStop=killall -TERM srcds_linux
+[Install]
+WantedBy=multi-user.target
+EOL
+
+sudo systemctl daemon-reload
+sudo systemctl enable ark.service
+
+sudo mkdir -p $SERVER_DIR/ShooterGame/Saved/Config/LinuxServer
+sudo chown -R azure-user $SERVER_DIR
+
+echo "Setup finished!"

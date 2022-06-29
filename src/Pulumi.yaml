@@ -1,0 +1,3 @@
+name: azure-ark-server
+runtime: nodejs
+description: An ARK server deployed in Azure
