@@ -2,7 +2,7 @@
 set -e
 
 # Paths
-export SERVER_DIR="/home/azure-user/server"
+export SERVER_DIR="/datadrive/server"
 MAP_NAME=${1:-"TheIsland"}
 
 # Configur operating system firewall
@@ -16,8 +16,17 @@ echo "* soft nofile 1000000" >> sudo /etc/security/limits.conf
 echo "* hard nofile 1000000" >> sudo /etc/security/limits.conf
 echo "session required pam_limits.so" >> sudo /etc/pam.d/common-session
 
-if [ ! -d "$SERVER_DIR" ]; then
-  mkdir -p $SERVER_DIR
+if [ -z "$(df -h | grep ^/dev/sda1)"]; then
+    # partition the disk
+    sudo parted /dev/sda --script mklabel gpt mkpart xfspart xfs 0% 100%
+    sudo mkfs.xfs /dev/sda1
+    sudo partprobe /dev/sda1
+    sudo mkdir /datadrive
+    sudo mount /dev/sda1 /datadrive
+
+    # Add partition to fstab
+    UUID=$(sudo blkid | grep -o -P '(?<=/dev/sda1: UUID=")(\S+)(?=")')
+    echo "UUID=$UUID   /datadrive   xfs   defaults,nofail   1   2" | sudo tee -a /etc/fstab
 fi
 
 sudo dpkg --add-architecture i386
