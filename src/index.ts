@@ -146,10 +146,10 @@ const disk01 = new azure_native.compute.Disk(
     creationData: {
       createOption: "Empty",
     },
-    diskIOPSReadWrite: 120,
-    diskMBpsReadWrite: 25,
+    diskIOPSReadWrite: 240,
+    diskMBpsReadWrite: 50,
     diskName: `DISK-${projectName}-01-${stack}`,
-    diskSizeGB: 32,
+    diskSizeGB: 64,
     encryption: {
       type: "EncryptionAtRestWithPlatformKey",
     },
@@ -157,7 +157,7 @@ const disk01 = new azure_native.compute.Disk(
     sku: {
       name: "Premium_LRS",
     },
-    tier: "P4",
+    tier: "P6",
     zones: ["1"],
   },
   {
