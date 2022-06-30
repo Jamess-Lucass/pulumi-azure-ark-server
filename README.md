@@ -77,7 +77,7 @@ The following automation uses a `Standard_B2ms` virtual machine. See more inform
    > The server configuration files are located in the `/config` directory. You can copy them to the virtual machine using the following command
 
    ```bash
-   scp .\config\Game*.ini $USER@$IP_ADDRESS:/home/azure-user/server/ShooterGame/Saved/Config/LinuxServer
+   scp .\config\Game*.ini $USER@$IP_ADDRESS:/datadrive/server/ShooterGame/Saved/Config/LinuxServer
    ```
 
 9. Start the ARK server
